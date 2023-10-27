@@ -11,4 +11,5 @@ public class InputPojo {
     private String name;
     private String age;
     private String height;
+    private String job;
 }
