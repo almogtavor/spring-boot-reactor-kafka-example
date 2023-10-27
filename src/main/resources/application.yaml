@@ -1,21 +1,11 @@
 spring:
   kafka:
-    bootstrap-servers: localhost:9200
+    bootstrap-servers: localhost:9093
     consumer:
       topic: input_topic
-      group-id: input_group
+      group-id: input_topic
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      properties:
-        spring:
-          json:
-            use:
-              type:
-                headers:
-                  false
-            value:
-              default:
-                type: io.github.almogtavor.model.InputPojo
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
     producer:
       topic: output-topic
