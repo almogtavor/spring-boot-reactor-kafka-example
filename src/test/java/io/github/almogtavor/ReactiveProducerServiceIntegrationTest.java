@@ -1,4 +1,4 @@
-package com.example.reactivekafkaconsumerandproducer;
+package io.github.almogtavor;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -7,7 +7,7 @@ import org.springframework.test.annotation.DirtiesContext;
 
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@EmbeddedKafka(topics = {"${FAKE_PRODUCER_DTO_TOPIC}", "${FAKE_CONSUMER_DTO_TOPIC}"})
+@EmbeddedKafka(topics = {"${FAKE_PRODUCER_DTO_TOPIC}", "${spring.kafka.consumer.topic}"})
 class ReactiveProducerServiceIntegrationTest {
 
     @Test
