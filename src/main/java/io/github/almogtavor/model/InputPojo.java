@@ -3,8 +3,10 @@ package io.github.almogtavor.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class InputPojo {
     private String id;
