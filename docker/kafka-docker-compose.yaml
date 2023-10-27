@@ -1,0 +1,57 @@
+version: "3"
+networks:
+  kafka-net:
+    driver: bridge
+
+services:
+  zookeeper-server:
+    image: 'bitnami/zookeeper:latest'
+    networks:
+      - kafka-net
+    ports:
+      - '2181:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka-server2:
+    image: 'bitnami/kafka:latest'
+    networks:
+      - kafka-net
+    ports:
+      - '9093:9093'
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper-server:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_BROKER_ID=1
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka-server2:9092,EXTERNAL://localhost:9093
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
+#      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,INTERNAL://kafka1:19092
+#      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka1:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,DOCKER://host.docker.internal:29092
+    depends_on:
+      - zookeeper-server
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    networks:
+      - kafka-net
+    restart: "no"
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "PLAINTEXT://kafka-server2:9092"
+      JVM_OPTS: "-Xms16M -Xmx48M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify"
+    depends_on:
+#      - "kafka-server1"
+      - "kafka-server2"
+  kafka_manager:
+    image: hlebalbau/kafka-manager:stable
+    ports:
+      - "9200:9000"
+    depends_on:
+      - zookeeper-server
+#      - kafka-server1
+      - kafka-server2
+    environment:
+      ZK_HOSTS: localhost:2181
+      APPLICATION_SECRET: "random-secret"
+      KM_ARGS: -Djava.net.preferIPv4Stack=true
