@@ -12,16 +12,27 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.http.MediaType;
 import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOptions;
 import reactor.kafka.sender.KafkaSender;
+import reactor.util.retry.Retry;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 
 @Slf4j
@@ -32,12 +43,22 @@ public class Processor implements ApplicationRunner {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private Mono<List<MessageBuilder<InputPojo>>> myAsyncOperation(List<MessageBuilder<InputPojo>> msgs) {
-        return Mono.just(msgs);
+        HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/employees")).GET().build();
+        CompletableFuture<HttpResponse<String>> response = client.sendAsync(request,HttpResponse.BodyHandlers.ofString());
+        return Mono.fromFuture(response).map(responses -> msgs);
+    }
+    private Mono<MessageBuilder<InputPojo>> mySingleAsyncOperation(MessageBuilder<InputPojo> msgs) {
+        HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/employees")).GET().build();
+        CompletableFuture<HttpResponse<String>> response = client.sendAsync(request,HttpResponse.BodyHandlers.ofString());
+        return Mono.fromFuture(response).map(responses -> msgs);
     }
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        kafkaReceiver.receive()
+        kafkaReceiver.receive()//.publishOn(Schedulers.parallel())
+                //.retryWhen(Retry.max(3))
                 .doOnNext(consumerRecord -> log.info("received key={}, value={} from topic={}, offset={}",
                         consumerRecord.key(),
                         consumerRecord.value(),
@@ -53,6 +74,7 @@ public class Processor implements ApplicationRunner {
                         throw new RuntimeException(e);
                     }
                 })
+                //.concatMap(this::mySingleAsyncOperation)
                 .buffer(5)
                 .concatMap(this::myAsyncOperation)
                 .doOnError(throwable -> log.error("something bad happened while consuming : {}", throwable.getMessage()))

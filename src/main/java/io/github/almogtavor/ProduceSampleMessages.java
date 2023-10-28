@@ -53,6 +53,12 @@ public class ProduceSampleMessages {
 			producer.send(new ProducerRecord<>(TOPIC, "bla4", d1)).get();
 			producer.send(new ProducerRecord<>(TOPIC, "bla5", e1)).get();
 
+			producer.send(new ProducerRecord<>(TOPIC, "bla1", a1)).get();
+			producer.send(new ProducerRecord<>(TOPIC, "bla2", b1)).get();
+			producer.send(new ProducerRecord<>(TOPIC, "bla3", c1)).get();
+			producer.send(new ProducerRecord<>(TOPIC, "bla4", d1)).get();
+			producer.send(new ProducerRecord<>(TOPIC, "bla5", e1)).get();
+
 		} catch (ExecutionException | InterruptedException e) {
 			e.printStackTrace();
 		}
