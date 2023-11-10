@@ -9,6 +9,9 @@ version '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
+    maven {
+        url("https://repo.spring.io/snapshot")
+    }
 }
 
 configurations {
@@ -20,6 +23,7 @@ configurations {
 
 
 dependencies {
+    implementation("io.projectreactor.kafka:reactor-kafka:1.3.22-SNAPSHOT")
     implementation("org.glassfish.jaxb:jaxb-runtime:2.3.3")
     implementation("org.springframework.boot:spring-boot-starter:2.7.3")
     implementation("org.springframework.boot:spring-boot-configuration-processor:2.7.3")
@@ -35,7 +39,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation:2.7.3")
     implementation("javax.annotation:jsr250-api:1.0")
     implementation('com.fasterxml.jackson.core:jackson-annotations:2.13.4')
-    implementation("io.projectreactor.kafka:reactor-kafka:1.3.12")
+//    implementation("io.projectreactor.kafka:reactor-kafka:1.3.12")
     implementation("io.projectreactor.kafka:reactor-kafka-tools:1.3.12")
     implementation('com.fasterxml.jackson.core:jackson-databind:2.13.4')
     implementation("io.projectreactor:reactor-core:3.4.23")
