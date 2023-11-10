@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
 @AutoConfigureObservability
 @Slf4j
 class SpringBootReactorKafkaTracingApplicationTests {
+    public static String MY_TOPIC ="MY_TOPIC";
     @Autowired
     KafkaSender<Integer, String> kafkaSender;
     @Autowired
@@ -49,7 +50,7 @@ class SpringBootReactorKafkaTracingApplicationTests {
         Observation parentObservation = Observation.start("test parent observation", this.observationRegistry);
 
         kafkaSender.createOutbound()
-                .send(Mono.just(new ProducerRecord<>(SpringBootReactorKafkaTracingApplication.MY_TOPIC, "test data")))
+                .send(Mono.just(new ProducerRecord<>(MY_TOPIC, "test data")))
                 .then()
                 .doOnTerminate(parentObservation::stop)
                 .doOnError(parentObservation::error)
@@ -71,7 +72,7 @@ class SpringBootReactorKafkaTracingApplicationTests {
 
                             return Mono.just(record)
                                     .<ReceiverRecord<Integer, String>>handle((consumerRecord, sink) -> {
-                                        log.warn(consumerRecord);
+                                        log.warn(consumerRecord.value());
                                         sink.next(consumerRecord);
                                     })
                                     .doOnTerminate(receiverObservation::stop)
